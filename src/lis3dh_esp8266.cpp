@@ -1,18 +1,55 @@
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <SPI.h>
-#include <ESP8266WiFi.h>
 #include <WifiClient.h>
-#include <ESP8266WebServer.h>
+#include <WiFiManager.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
+
+#ifdef ARDUINO_ARCH_ESP32
+#include <WiFi.h>
+#include <WiFiAP.h>
+#include <WiFiMulti.h>
+#include <WiFiScan.h>
+#include <ETH.h>
+#include <WiFiSTA.h>
+#include <WiFiType.h>
+#include <WiFiGeneric.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#endif // ARDUINO_ARCH_ESP32
+
+#ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266mDNS.h>
+#include <WiFiServerSecure.h>
+#include <WiFiClientSecure.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266WiFiType.h>
+#include <ESP8266WiFiAP.h>
+#include <ESP8266WiFiScan.h>
+#include <ESP8266WiFiGeneric.h>
+#include <ESP8266WiFiSTA.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266WebServerSecure.h>
+#include <ESP8266NetBIOS.h>
+#endif // ARDUINO_ARCH_ESP8266
 
-#define STASSID "YOURSSIDHERE"
-#define STAPSK "YOURWIFIPSKHERE"
-
+#ifdef ARDUINO_ARCH_ESP32
+// D14/GPIO14 = SCK
+// D12/GPIO12 = MISO => SDO
+// D13/GPIO13 = MOSI => SDA
+#define CS 15 // D15/GPIO15
+#define INT 22 // D22/GPIO22
+int LED_BUILTIN = 2;
+#else
 // D5 = SCK
 // D6 = MISO => SDO
 // D7 = MOSI => SDA
 #define CS D8
 #define INT D1
+#endif
+
 #define WAI_WRITE 0x0f
 #define WAI_VALUE 0x33
 #define REG_CTRL1 0x20
@@ -27,10 +64,15 @@ volatile uint8_t* const data_buffer = transfer_buffer + 2;
 uint8_t ctrl_reg1;
 volatile uint32_t total_numread;
 uint32_t total_handled;
-bool lis3dh_found = false;
+bool accelerometer_found = false;
 
 SPISettings spi_setting = SPISettings(2000000, MSBFIRST, SPI_MODE0);
+
+#ifdef ARDUINO_ARCH_ESP32
+WebServer server(80);
+#else
 ESP8266WebServer server(80);
+#endif
 
 #define TRANSACT_SPI(x) do {         \
   SPI.beginTransaction(spi_setting); \
@@ -69,11 +111,11 @@ void setupSPI() {
 
 void setupLIS3DH() {
   uint8_t wai = read_register(WAI_WRITE);
-  lis3dh_found = wai == WAI_VALUE;
+  accelerometer_found = wai == WAI_VALUE;
   if (wai != WAI_VALUE) {
-    Serial.println(F("LIS3DH missing"));
+    Serial.println(F("LIS3D(S)H missing"));
   } else {
-    Serial.println(F("LIS3DH found"));
+    Serial.println(F("LIS3D(S)H found"));
   }
 
   ctrl_reg1 = 0;
@@ -168,15 +210,27 @@ void setup() {
   Serial.println("BOOT");
   attachInterrupt(digitalPinToInterrupt(INT), read_lis3dh_fifo, RISING);
 
+// AP config wifi
+  WiFiManager wifiManager;
+#ifdef ARDUINO_ARCH_ESP32
+  wifiManager.setHostname("ACCEL-ESP32");
+#else
+  wifiManager.setHostname("ACCEL-ESP8266");
+#endif
+  wifiManager.autoConnect("lis3dh");
+
+  MDNS.begin("lis3dh");
+  MDNS.addService("http", "tcp", 80);
+  ArduinoOTA.setPort(8266);
+  ArduinoOTA.setHostname("lis3dh");
+  ArduinoOTA.begin();
+
   setupSPI();
   setupLIS3DH();
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(STASSID, STAPSK);
-
   server.on("/data", []() {
-    if (!lis3dh_found) {
-      server.send(404, "text/plain", "LIS3DH not found\n");
+    if (!accelerometer_found) {
+      server.send(404, "text/plain", "LIS3D(S)H not found\n");
       return;
     }
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -248,12 +302,14 @@ void setup() {
 void loop() {
   static unsigned long blink = 0;
   static int led_state = 0;
-  if (!lis3dh_found) {
+  if (!accelerometer_found) {
     if (millis() - blink > 45) {
       digitalWrite(LED_BUILTIN, led_state = !led_state);
       blink = millis();
     }
   }
   server.handleClient();
+#ifndef ARDUINO_ARCH_ESP32
   MDNS.update();
+#endif
 }
