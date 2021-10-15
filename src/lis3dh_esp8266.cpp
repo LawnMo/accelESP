@@ -36,12 +36,12 @@
 #endif // ARDUINO_ARCH_ESP8266
 
 #ifdef ARDUINO_ARCH_ESP32
-// D14/GPIO14 = SCK
-// D12/GPIO12 = MISO => SDO
-// D13/GPIO13 = MOSI => SDA
+// D18 = SCK
+// D19 = MISO => SDO
+// D23 = MOSI => SDA
 #define CS 15 // D15/GPIO15
 #define INT 22 // D22/GPIO22
-int LED_BUILTIN = 2;
+#define LED_BUILTIN 2
 #else
 // D5 = SCK
 // D6 = MISO => SDO
