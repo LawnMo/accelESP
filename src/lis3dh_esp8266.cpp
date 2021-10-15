@@ -221,7 +221,7 @@ void setup() {
 
   MDNS.begin("lis3dh");
   MDNS.addService("http", "tcp", 80);
-  ArduinoOTA.setPort(8266);
+
   ArduinoOTA.setHostname("lis3dh");
   ArduinoOTA.begin();
 
@@ -312,4 +312,5 @@ void loop() {
 #ifndef ARDUINO_ARCH_ESP32
   MDNS.update();
 #endif
+  ArduinoOTA.handle();
 }
