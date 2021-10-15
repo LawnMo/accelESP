@@ -50,6 +50,8 @@
 #define INT D1
 #endif
 
+char host_name[20]="lis3dh";
+
 #define WAI_WRITE 0x0f
 #define WAI_VALUE 0x33
 #define REG_CTRL1 0x20
@@ -212,17 +214,16 @@ void setup() {
 
 // AP config wifi
   WiFiManager wifiManager;
-#ifdef ARDUINO_ARCH_ESP32
-  wifiManager.setHostname("ACCEL-ESP32");
-#else
-  wifiManager.setHostname("ACCEL-ESP8266");
-#endif
-  wifiManager.autoConnect("lis3dh");
+  WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this IR Controller", host_name, 20);
 
-  MDNS.begin("lis3dh");
+  wifiManager.addParameter(&custom_hostname);
+
+  wifiManager.autoConnect(host_name);
+
+  MDNS.begin(host_name);
   MDNS.addService("http", "tcp", 80);
 
-  ArduinoOTA.setHostname("lis3dh");
+  ArduinoOTA.setHostname(host_name);
   ArduinoOTA.begin();
 
   setupSPI();
