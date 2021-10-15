@@ -296,7 +296,7 @@ void setup() {
   Serial.println("HTTP UP");
   digitalWrite(LED_BUILTIN, 1);
   Serial.print("Free RAM: ");
-  Serial.println(system_get_free_heap_size());
+  Serial.println(ESP.getFreeHeap());
 }
 
 void loop() {
