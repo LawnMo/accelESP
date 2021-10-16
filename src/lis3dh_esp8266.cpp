@@ -1,3 +1,5 @@
+#include <LittleFS.h>
+
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 
@@ -10,7 +12,6 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include <ESPmDNS.h>
 #include <ETH.h>
-#include <SPIFFS.h>
 #include <WiFi.h>
 #include <WiFiAP.h>
 #include <WiFiGeneric.h>
@@ -205,6 +206,13 @@ void stop_collecting() {
 const uint16_t sign_mask = (1u << RESOLUTION) - 1;
 const float resolution_divisor = (float) (1u << (RESOLUTION - 2));
 
+// Wifi Manager callback notifying us of the need to save config
+bool shouldSaveConfig = false;
+
+void saveConfigCallback () {
+  shouldSaveConfig = true;
+}
+
 void setup() {
   int led_state = 0;
   pinMode(LED_BUILTIN, OUTPUT);
@@ -213,15 +221,34 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println("BOOT");
-  attachInterrupt(digitalPinToInterrupt(INT), read_lis3dh_fifo, RISING);
+
+  // mount FS
+  if(!LittleFS.begin()){
+    Serial.println("Error mounting the FS");
+  }
+
+  // open file for read
+  File f = LittleFS.open("/hostname", "r");
+  if (!f) {
+      Serial.println("/hostname doesn't exist or couldn't be open");
+  } else {
+    String s = f.readStringUntil('\n');
+    strcpy(host_name, s.c_str());
+  }
+  f.close();
 
 // AP config wifi
-  WiFiManager wifiManager;
   WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this controller", host_name, 20);
+
+  WiFiManager wifiManager;
+
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   wifiManager.addParameter(&custom_hostname);
 
   wifiManager.autoConnect(host_name, portal_pass);
+
+  strcpy(host_name, custom_hostname.getValue());
 
   MDNS.begin(host_name);
   MDNS.addService("http", "tcp", 80);
@@ -229,6 +256,21 @@ void setup() {
   ArduinoOTA.setHostname(host_name);
   ArduinoOTA.begin();
 
+  //save the custom hostname
+  if (shouldSaveConfig) {
+    f = LittleFS.open("/hostname", "w");
+   
+    if (!f) {
+      Serial.println("Error opening file for writing");
+      return;
+    }
+   
+    int bytesWritten = f.print(host_name);
+   
+    f.close();
+  }
+
+  attachInterrupt(digitalPinToInterrupt(INT), read_lis3dh_fifo, RISING);
   setupSPI();
   setupLIS3DH();
 
@@ -288,7 +330,7 @@ void setup() {
   }
   Serial.println("WIFI UP");
 
-  if (!MDNS.begin("lis3dh")) {
+  if (!MDNS.begin(host_name)) {
     while (true) {
         delay(250);
         digitalWrite(LED_BUILTIN, led_state = !led_state);
