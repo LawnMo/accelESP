@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
+
 #include <SPI.h>
 #include <WifiClient.h>
 #include <WiFiManager.h>
@@ -7,22 +8,21 @@
 #include <WiFiUdp.h>
 
 #ifdef ARDUINO_ARCH_ESP32
+#include <ESPmDNS.h>
+#include <ETH.h>
+#include <SPIFFS.h>
 #include <WiFi.h>
 #include <WiFiAP.h>
+#include <WiFiGeneric.h>
 #include <WiFiMulti.h>
 #include <WiFiScan.h>
-#include <ETH.h>
 #include <WiFiSTA.h>
 #include <WiFiType.h>
-#include <WiFiGeneric.h>
 #include <WebServer.h>
-#include <ESPmDNS.h>
 #endif // ARDUINO_ARCH_ESP32
 
 #ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266mDNS.h>
-#include <WiFiServerSecure.h>
-#include <WiFiClientSecure.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266WiFiType.h>
@@ -33,6 +33,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266WebServerSecure.h>
 #include <ESP8266NetBIOS.h>
+#include <WiFiClientSecure.h>
+#include <WiFiServerSecure.h>
 #endif // ARDUINO_ARCH_ESP8266
 
 #ifdef ARDUINO_ARCH_ESP32
@@ -50,7 +52,8 @@
 #define INT D1
 #endif
 
-char host_name[20]="lis3dh";
+char host_name[20] = "lis3dh";
+const char* portal_pass = "1234567890";
 
 #define WAI_WRITE 0x0f
 #define WAI_VALUE 0x33
@@ -214,11 +217,11 @@ void setup() {
 
 // AP config wifi
   WiFiManager wifiManager;
-  WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this IR Controller", host_name, 20);
+  WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this controller", host_name, 20);
 
   wifiManager.addParameter(&custom_hostname);
 
-  wifiManager.autoConnect(host_name);
+  wifiManager.autoConnect(host_name, portal_pass);
 
   MDNS.begin(host_name);
   MDNS.addService("http", "tcp", 80);
@@ -298,6 +301,9 @@ void setup() {
   digitalWrite(LED_BUILTIN, 1);
   Serial.print("Free RAM: ");
   Serial.println(ESP.getFreeHeap());
+
+  Serial.print("Hostname: ");
+  Serial.println(host_name);
 }
 
 void loop() {
