@@ -242,6 +242,8 @@ void setup() {
 
   WiFiManager wifiManager;
 
+  wifiManager.setClass("invert"); // dark theme
+
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   wifiManager.addParameter(&custom_hostname);
