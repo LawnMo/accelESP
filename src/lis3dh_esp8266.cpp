@@ -240,15 +240,15 @@ void setup() {
 // AP config wifi
   WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this controller", host_name, 20);
 
-  WiFiManager wifiManager;
+  WiFiManager wm;
 
-  wifiManager.setClass("invert"); // dark theme
+  wm.setClass("invert"); // dark theme
 
-  wifiManager.setSaveConfigCallback(saveConfigCallback);
+  wm.setSaveConfigCallback(saveConfigCallback);
 
-  wifiManager.addParameter(&custom_hostname);
+  wm.addParameter(&custom_hostname);
 
-  wifiManager.autoConnect(host_name, portal_pass);
+  wm.autoConnect(host_name, portal_pass);
 
   strcpy(host_name, custom_hostname.getValue());
 
