@@ -256,14 +256,6 @@ void setup() {
 
   strcpy(host_name, custom_hostname.getValue());
 
-  MDNS.begin(host_name);
-  MDNS.addService("http", "tcp", 80);
-
-#ifndef DISABLE_OTA
-  ArduinoOTA.setHostname(host_name);
-  ArduinoOTA.begin();
-#endif
-
   //save the custom hostname
   if (shouldSaveConfig) {
     File f = LittleFS.open("/hostname", "w");
@@ -338,13 +330,16 @@ void setup() {
   }
   Serial.println("WIFI UP");
 
-  if (!MDNS.begin(host_name)) {
-    while (true) {
-        delay(250);
-        digitalWrite(LED_BUILTIN, led_state = !led_state);
-    }
+  if (MDNS.begin(host_name)) {
+    MDNS.addService("http", "tcp", 80);
+    Serial.println("MDNS UP");
   }
-  Serial.println("MDNS UP");
+
+#ifndef DISABLE_OTA
+  ArduinoOTA.setHostname(host_name);
+  ArduinoOTA.begin();
+  Serial.println("OTA UP");
+#endif
 
   server.begin();
   Serial.println("HTTP UP");
