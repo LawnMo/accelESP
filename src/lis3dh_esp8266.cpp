@@ -1,13 +1,17 @@
 #include <LittleFS.h>
 
 #include <Arduino.h>
+
+//#define DISABLE_OTA
+#ifndef DISABLE_OTA
 #include <ArduinoOTA.h>
+#include <WiFiUdp.h>
+#endif
 
 #include <SPI.h>
 #include <WifiClient.h>
 #include <WiFiManager.h>
 #include <WiFiServer.h>
-#include <WiFiUdp.h>
 
 #ifdef ARDUINO_ARCH_ESP32
 #include <ESPmDNS.h>
@@ -255,8 +259,10 @@ void setup() {
   MDNS.begin(host_name);
   MDNS.addService("http", "tcp", 80);
 
+#ifndef DISABLE_OTA
   ArduinoOTA.setHostname(host_name);
   ArduinoOTA.begin();
+#endif
 
   //save the custom hostname
   if (shouldSaveConfig) {
@@ -363,5 +369,7 @@ void loop() {
 #ifndef ARDUINO_ARCH_ESP32
   MDNS.update();
 #endif
+#ifndef DISABLE_OTA
   ArduinoOTA.handle();
+#endif
 }
