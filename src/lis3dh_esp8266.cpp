@@ -14,6 +14,9 @@
 #include <WiFiServer.h>
 
 #ifdef ARDUINO_ARCH_ESP32
+
+#define FORMAT_LITTLEFS_IF_FAILED true
+
 #include <ESPmDNS.h>
 #include <ETH.h>
 #include <WiFi.h>
@@ -227,19 +230,24 @@ void setup() {
   Serial.println(F("BOOT"));
 
   // mount FS
-  if (LittleFS.begin()) {
-    // open file for read
-    File f = LittleFS.open("/hostname", "r");
-    if (!f) {
-        Serial.println(F("/hostname doesn't exist or couldn't be open"));
-    } else {
-      String s = f.readStringUntil('\n');
-      strcpy(host_name, s.c_str());
-    }
-    f.close();
-  } else {
+#ifdef ARDUINO_ARCH_ESP32
+  if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)) {
+#else
+  if (!LittleFS.begin()) {
+#endif
     Serial.println(F("Error mounting the FS"));
+    return;
   }
+
+  // open file for read
+  File f = LittleFS.open("/hostname", "r");
+  if (!f) {
+      Serial.println(F("/hostname doesn't exist or couldn't be open"));
+  } else {
+    String s = f.readStringUntil('\n');
+    strcpy(host_name, s.c_str());
+  }
+  f.close();
 
 // AP config wifi
   WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this controller", host_name, 20);
