@@ -185,7 +185,7 @@ void IRAM_ATTR read_lis3dh_fifo() {
     fifo_read_error = true;
     return;
   }
-  
+
   if ((fifo_status & 0x40) != 0)
     ++fifo_overflows;
 
@@ -259,14 +259,14 @@ void setup() {
   //save the custom hostname
   if (shouldSaveConfig) {
     File f = LittleFS.open("/hostname", "w");
-   
+
     if (!f) {
       Serial.println(F("Error opening file for writing"));
       return;
     }
-   
+
     int __attribute__((unused)) bytesWritten = f.print(host_name);
-   
+
     f.close();
   }
   LittleFS.end();
