@@ -58,7 +58,7 @@
 #endif
 
 char host_name[20] = "lis3dh";
-const char* portal_pass = "1234567890";
+static const char* portal_pass = "1234567890";
 
 #define WAI_WRITE 0x0f
 #define WAI_VALUE 0x33
@@ -224,21 +224,21 @@ void setup() {
   digitalWrite(LED_BUILTIN, led_state = !led_state);
 
   Serial.begin(115200);
-  Serial.println("BOOT");
+  Serial.println(F("BOOT"));
 
   // mount FS
   if (LittleFS.begin()) {
     // open file for read
     File f = LittleFS.open("/hostname", "r");
     if (!f) {
-        Serial.println("/hostname doesn't exist or couldn't be open");
+        Serial.println(F("/hostname doesn't exist or couldn't be open"));
     } else {
       String s = f.readStringUntil('\n');
       strcpy(host_name, s.c_str());
     }
     f.close();
   } else {
-    Serial.println("Error mounting the FS");
+    Serial.println(F("Error mounting the FS"));
   }
 
 // AP config wifi
@@ -261,7 +261,7 @@ void setup() {
     File f = LittleFS.open("/hostname", "w");
    
     if (!f) {
-      Serial.println("Error opening file for writing");
+      Serial.println(F("Error opening file for writing"));
       return;
     }
    
@@ -333,22 +333,22 @@ void setup() {
 
   if (MDNS.begin(host_name)) {
     MDNS.addService("http", "tcp", 80);
-    Serial.println("MDNS UP");
+    Serial.println(F("MDNS UP"));
   }
 
 #ifndef DISABLE_OTA
   ArduinoOTA.setHostname(host_name);
   ArduinoOTA.begin();
-  Serial.println("OTA UP");
+  Serial.println(F("OTA UP"));
 #endif
 
   server.begin();
-  Serial.println("HTTP UP");
+  Serial.println(F("HTTP UP"));
   digitalWrite(LED_BUILTIN, 1);
-  Serial.print("Free RAM: ");
+  Serial.print(F("Free RAM: "));
   Serial.println(ESP.getFreeHeap());
 
-  Serial.print("Hostname: ");
+  Serial.print(F("Hostname: "));
   Serial.println(host_name);
 }
 
