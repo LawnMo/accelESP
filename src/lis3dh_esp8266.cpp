@@ -227,19 +227,19 @@ void setup() {
   Serial.println("BOOT");
 
   // mount FS
-  if(!LittleFS.begin()){
+  if (LittleFS.begin()) {
+    // open file for read
+    File f = LittleFS.open("/hostname", "r");
+    if (!f) {
+        Serial.println("/hostname doesn't exist or couldn't be open");
+    } else {
+      String s = f.readStringUntil('\n');
+      strcpy(host_name, s.c_str());
+    }
+    f.close();
+  } else {
     Serial.println("Error mounting the FS");
   }
-
-  // open file for read
-  File f = LittleFS.open("/hostname", "r");
-  if (!f) {
-      Serial.println("/hostname doesn't exist or couldn't be open");
-  } else {
-    String s = f.readStringUntil('\n');
-    strcpy(host_name, s.c_str());
-  }
-  f.close();
 
 // AP config wifi
   WiFiManagerParameter custom_hostname("hostname", "Choose a hostname for this controller", host_name, 20);
@@ -266,7 +266,7 @@ void setup() {
 
   //save the custom hostname
   if (shouldSaveConfig) {
-    f = LittleFS.open("/hostname", "w");
+    File f = LittleFS.open("/hostname", "w");
    
     if (!f) {
       Serial.println("Error opening file for writing");
