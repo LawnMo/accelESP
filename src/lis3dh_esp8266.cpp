@@ -267,7 +267,7 @@ void setup() {
       return;
     }
    
-    int bytesWritten = f.print(host_name);
+    int __attribute__((unused)) bytesWritten = f.print(host_name);
    
     f.close();
   }
