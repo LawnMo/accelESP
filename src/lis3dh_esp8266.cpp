@@ -269,6 +269,7 @@ void setup() {
    
     f.close();
   }
+  LittleFS.end();
 
   attachInterrupt(digitalPinToInterrupt(INT), read_lis3dh_fifo, RISING);
   setupSPI();
