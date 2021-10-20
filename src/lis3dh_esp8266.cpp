@@ -256,6 +256,9 @@ void setup() {
 
   wm.setClass("invert"); // dark theme
 
+  std::vector<const char *> menu = {"wifi","update","restart"};
+  wm.setMenu(menu);
+
   wm.setSaveConfigCallback(saveConfigCallback);
 
   wm.addParameter(&custom_hostname);
