@@ -288,14 +288,14 @@ void setup() {
 
   server.on("/data", []() {
     if (!accelerometer_found) {
-      server.send(404, "text/plain", "LIS3D(S)H not found\n");
+      server.send(404, F("text/plain"), F("LIS3D(S)H not found\n"));
       return;
     }
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server.send(200, "text/plain", "");
+    server.send(200,F("text/plain"), F(""));
     char buf[48];
     float in_g[3];
-    server.sendContent("Sample,X,Y,Z,Overflows,DataRate\n");
+    server.sendContent(F("Sample,X,Y,Z,Overflows,DataRate\n"));
     start_collecting();
     while (server.client().connected()) {
 
@@ -340,7 +340,7 @@ void setup() {
     delay(500);
     digitalWrite(LED_BUILTIN, led_state = !led_state);
   }
-  Serial.println("WIFI UP");
+  Serial.println(F("WIFI UP"));
 
   if (MDNS.begin(host_name)) {
     MDNS.addService("http", "tcp", 80);
