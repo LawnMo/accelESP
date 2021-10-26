@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+//#define DISABLE_LED
 //#define DISABLE_OTA
 #ifndef DISABLE_OTA
 #include <ArduinoOTA.h>
@@ -216,10 +217,13 @@ void saveConfigCallback () {
 }
 
 void setup() {
+  pinMode(INT, INPUT);
+
+  #ifndef DISABLE_LED
   int led_state = 0;
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(INT, INPUT);
   digitalWrite(LED_BUILTIN, led_state = !led_state);
+#endif
 
   Serial.begin(115200);
   Serial.println(F("BOOT"));
@@ -333,7 +337,9 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+#ifndef DISABLE_LED
     digitalWrite(LED_BUILTIN, led_state = !led_state);
+#endif
   }
   Serial.println(F("WIFI UP"));
 
@@ -350,7 +356,9 @@ void setup() {
 
   server.begin();
   Serial.println(F("HTTP UP"));
+#ifndef DISABLE_LED
   digitalWrite(LED_BUILTIN, 1);
+#endif
   Serial.print(F("Free RAM: "));
   Serial.println(ESP.getFreeHeap());
 
@@ -359,6 +367,7 @@ void setup() {
 }
 
 void loop() {
+#ifndef DISABLE_LED
   static unsigned long blink = 0;
   static int led_state = 0;
   if (!accelerometer_found) {
@@ -367,6 +376,7 @@ void loop() {
       blink = millis();
     }
   }
+#endif
   server.handleClient();
 #ifndef ARDUINO_ARCH_ESP32
   MDNS.update();
