@@ -14,8 +14,12 @@
 #include <WiFiServer.h>
 
 #ifdef ARDUINO_ARCH_ESP32
-
 #define FORMAT_LITTLEFS_IF_FAILED true
+// D18 = SCK
+// D19 = MISO => SDO
+// D23 = MOSI => SDA
+#define CS 15
+#define INT 22
 
 #include <ESPmDNS.h>
 #include <ETH.h>
@@ -30,6 +34,12 @@
 #endif // ARDUINO_ARCH_ESP32
 
 #ifdef ARDUINO_ARCH_ESP8266
+// D5 = SCK
+// D6 = MISO => SDO
+// D7 = MOSI => SDA
+#define CS D8
+#define INT D1
+
 #include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
@@ -44,21 +54,6 @@
 #include <WiFiClientSecure.h>
 #include <WiFiServerSecure.h>
 #endif // ARDUINO_ARCH_ESP8266
-
-#ifdef ARDUINO_ARCH_ESP32
-// D18 = SCK
-// D19 = MISO => SDO
-// D23 = MOSI => SDA
-#define CS 15 // D15/GPIO15
-#define INT 22 // D22/GPIO22
-#define LED_BUILTIN 2
-#else
-// D5 = SCK
-// D6 = MISO => SDO
-// D7 = MOSI => SDA
-#define CS D8
-#define INT D1
-#endif
 
 char host_name[20] = "lis3dh";
 static const char* portal_pass = "1234567890";
