@@ -32,9 +32,8 @@
 #include <WiFiSTA.h>
 #include <WiFiType.h>
 #include <WebServer.h>
-#endif // ARDUINO_ARCH_ESP32
 
-#ifdef ARDUINO_ARCH_ESP8266
+#else // ARDUINO_ARCH_ESP8266
 // D5 = SCK
 // D6 = MISO => SDO
 // D7 = MOSI => SDA
@@ -50,11 +49,8 @@
 #include <ESP8266WiFiGeneric.h>
 #include <ESP8266WiFiSTA.h>
 #include <ESP8266WebServer.h>
-#include <ESP8266WebServerSecure.h>
 #include <ESP8266NetBIOS.h>
-#include <WiFiClientSecure.h>
-#include <WiFiServerSecure.h>
-#endif // ARDUINO_ARCH_ESP8266
+#endif
 
 char host_name[20] = "lis3dh";
 static const char* portal_pass = "1234567890";
