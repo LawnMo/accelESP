@@ -52,6 +52,8 @@
 #include <ESP8266NetBIOS.h>
 #endif
 
+#include "main.h"
+
 char host_name[20] = "lis3dh";
 static const char* portal_pass = "1234567890";
 
